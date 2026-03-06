@@ -28,19 +28,18 @@ export function SortableHeader({ label, field, className = '' }: SortableHeaderP
 
     return (
         <th
-            className={`px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide cursor-pointer select-none hover:text-slate-600 transition-colors ${className}`}
+            className={`px-5 py-3 text-xs font-semibold uppercase tracking-wide cursor-pointer select-none transition-colors ${className}`}
+            style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)' }}
             onClick={handleSort}
         >
             <span className="inline-flex items-center gap-1.5">
                 {label}
                 {isActive ? (
-                    currentOrder === 'asc' ? (
-                        <ArrowUp size={12} className="text-violet-500" />
-                    ) : (
-                        <ArrowDown size={12} className="text-violet-500" />
-                    )
+                    currentOrder === 'asc'
+                        ? <ArrowUp size={11} style={{ color: 'var(--accent)' }} />
+                        : <ArrowDown size={11} style={{ color: 'var(--accent)' }} />
                 ) : (
-                    <ArrowUpDown size={12} className="text-slate-300" />
+                    <ArrowUpDown size={11} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
                 )}
             </span>
         </th>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { CATEGORIES } from '@/types'
 import type { Transaction, TransactionType, TransactionCategory, TransactionStatus } from '@/types'
+import { Loader2 } from 'lucide-react'
 
 type Props = {
   transaction?: Transaction
@@ -47,8 +48,12 @@ export default function TransactionForm({ transaction }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 max-w-lg">
-      <div className="flex flex-col gap-4">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl p-6 max-w-lg"
+      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+    >
+      <div className="flex flex-col gap-5">
         <Field label="Descrição">
           <input
             name="description"
@@ -109,13 +114,19 @@ export default function TransactionForm({ transaction }: Props) {
           </Field>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && (
+          <p className="text-sm rounded-lg px-3 py-2" style={{ background: 'var(--red-dim)', color: 'var(--red)' }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          className="flex items-center justify-center gap-2 font-semibold py-2.5 px-4 rounded-xl transition-all disabled:opacity-50"
+          style={{ background: 'var(--accent)', color: '#000' }}
         >
+          {loading && <Loader2 size={16} className="animate-spin" />}
           {loading ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Transação'}
         </button>
       </div>
@@ -125,8 +136,10 @@ export default function TransactionForm({ transaction }: Props) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-slate-700">{label}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+        {label}
+      </label>
       {children}
     </div>
   )

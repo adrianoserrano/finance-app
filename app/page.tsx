@@ -1,8 +1,8 @@
 import { supabase } from '@/lib/supabase'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Transaction } from '@/types'
-import { TYPE_LABELS } from '@/types'
-import { BarChart3, TrendingDown, TrendingUp, Wallet, AlertCircle, Plus } from 'lucide-react'
+
+import { TrendingDown, TrendingUp, Wallet, AlertCircle, Plus, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { MonthlyComparisonChart, ChartDataPoint } from '@/components/Dashboard/MonthlyComparisonChart'
 import { addMonths, subMonths, startOfMonth, format, isSameMonth, isAfter } from 'date-fns'
@@ -18,7 +18,6 @@ async function getDashboardData() {
 
   const rows = data as Transaction[]
 
-  // A Pagar / A Receber: apenas pendentes (ainda não confirmados)
   const totalPayable = rows
     .filter((t) => t.type === 'payable' && t.status === 'pendente')
     .reduce((sum, t) => sum + Number(t.amount), 0)
@@ -31,7 +30,6 @@ async function getDashboardData() {
     .filter((t) => t.status === 'pendente')
     .reduce((sum, t) => sum + Number(t.amount), 0)
 
-  // Saldo: considera TODAS as transações independente do status
   const allReceivable = rows
     .filter((t) => t.type === 'receivable')
     .reduce((sum, t) => sum + Number(t.amount), 0)
@@ -42,7 +40,7 @@ async function getDashboardData() {
 
   const totalBalance = allReceivable - allPayable
 
-  // Generate chart data: 12 months back + current + 6 months ahead = 19 data points
+  // Generate 19 months: -12 to +6
   const chartData: ChartDataPoint[] = []
   const today = new Date()
   const currentMonthStart = startOfMonth(today)
@@ -51,6 +49,7 @@ async function getDashboardData() {
     const targetMonth = i >= 0
       ? startOfMonth(addMonths(today, i))
       : startOfMonth(subMonths(today, Math.abs(i)))
+
     const monthName = format(targetMonth, 'MMM/yy', { locale: ptBR })
     const future = isAfter(targetMonth, currentMonthStart)
 
@@ -79,6 +78,13 @@ async function getDashboardData() {
   return { rows: rows.slice(0, 5), totalBalance, totalPayable, totalReceivable, totalPending, chartData }
 }
 
+function greeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Bom dia'
+  if (h < 18) return 'Boa tarde'
+  return 'Boa noite'
+}
+
 function currentMonthLabel() {
   return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' })
     .format(new Date())
@@ -88,135 +94,164 @@ function currentMonthLabel() {
 export default async function DashboardPage() {
   const { rows, totalBalance, totalPayable, totalReceivable, totalPending, chartData } = await getDashboardData()
 
+  const cards = [
+    {
+      label: 'Saldo Geral',
+      value: totalBalance,
+      sub: totalBalance >= 0 ? 'Saldo positivo ↑' : 'Saldo negativo ↓',
+      icon: <Wallet size={16} />,
+      accentColor: totalBalance >= 0 ? 'var(--green)' : 'var(--red)',
+      accentDim: totalBalance >= 0 ? 'var(--green-dim)' : 'var(--red-dim)',
+    },
+    {
+      label: 'A Receber',
+      value: totalReceivable,
+      sub: 'Pendentes',
+      icon: <TrendingUp size={16} />,
+      accentColor: 'var(--blue)',
+      accentDim: 'var(--blue-dim)',
+    },
+    {
+      label: 'A Pagar',
+      value: totalPayable,
+      sub: 'Pendentes',
+      icon: <TrendingDown size={16} />,
+      accentColor: 'var(--red)',
+      accentDim: 'var(--red-dim)',
+    },
+    {
+      label: 'Pendentes',
+      value: totalPending,
+      sub: 'Aguardando confirmação',
+      icon: <AlertCircle size={16} />,
+      accentColor: 'var(--amber)',
+      accentDim: 'var(--amber-dim)',
+    },
+  ]
+
   return (
-    <div>
+    <div className="p-8">
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{currentMonthLabel()}</p>
+          <p className="text-sm mb-1" style={{ color: 'var(--text-muted)' }}>{currentMonthLabel()}</p>
+          <h1 className="text-3xl font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
+            {greeting()},{' '}
+            <span style={{ color: 'var(--accent)' }}>Adriano</span>
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            Aqui está um resumo das suas finanças.
+          </p>
         </div>
         <Link
           href="/contas/nova"
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl transition-all"
+          style={{ background: 'var(--accent)', color: '#000' }}
         >
           <Plus size={16} />
           Nova Transação
         </Link>
       </div>
 
-      {/* Cards */}
+      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <SummaryCard
-          label="SALDO DO MÊS"
-          value={totalBalance}
-          sub={totalBalance >= 0 ? 'Saldo positivo' : 'Saldo negativo'}
-          icon={<Wallet size={18} />}
-          iconBg="bg-emerald-100"
-          iconColor="text-emerald-600"
-          valueColor={totalBalance >= 0 ? 'text-emerald-600' : 'text-red-500'}
-        />
-        <SummaryCard
-          label="A RECEBER"
-          value={totalReceivable}
-          sub="Total do mês"
-          icon={<TrendingUp size={18} />}
-          iconBg="bg-blue-100"
-          iconColor="text-blue-600"
-          valueColor="text-blue-600"
-        />
-        <SummaryCard
-          label="A PAGAR"
-          value={totalPayable}
-          sub="Total do mês"
-          icon={<TrendingDown size={18} />}
-          iconBg="bg-red-100"
-          iconColor="text-red-500"
-          valueColor="text-red-500"
-        />
-        <SummaryCard
-          label="PENDENTES"
-          value={totalPending}
-          sub="Aguardando confirmação"
-          icon={<AlertCircle size={18} />}
-          iconBg="bg-amber-100"
-          iconColor="text-amber-500"
-          valueColor="text-amber-500"
-        />
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="rounded-2xl p-5"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs font-semibold tracking-wider uppercase" style={{ color: 'var(--text-muted)' }}>
+                {card.label}
+              </span>
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: card.accentDim, color: card.accentColor }}
+              >
+                {card.icon}
+              </span>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: card.accentColor }}>
+              {formatCurrency(card.value)}
+            </p>
+            <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>{card.sub}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Chart */}
-        <div className="lg:col-span-2 flex flex-col">
+      {/* Chart + Recent */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <MonthlyComparisonChart data={chartData} />
         </div>
 
         {/* Recent transactions */}
-        <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
+        <div
+          className="rounded-2xl p-6 flex flex-col"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+        >
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-slate-800">Transações Recentes</h2>
-            <Link href="/contas" className="text-sm text-violet-600 hover:underline">
-              Ver todas →
+            <div>
+              <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Transações Recentes</h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Últimas 5 movimentações</p>
+            </div>
+            <Link
+              href="/contas"
+              className="flex items-center gap-1 text-xs font-medium transition-colors"
+              style={{ color: 'var(--accent)' }}
+            >
+              Ver todas <ArrowRight size={13} />
             </Link>
           </div>
 
           {rows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
-              <BarChart3 size={40} className="text-slate-300" />
-              <p className="font-medium text-slate-500">Nenhuma transação encontrada</p>
-              <p className="text-sm">Adicione uma transação para começar</p>
+            <div className="flex flex-col items-center justify-center py-12 gap-2" style={{ color: 'var(--text-muted)' }}>
+              <Wallet size={36} className="opacity-30" />
+              <p className="text-sm">Nenhuma transação ainda</p>
+              <Link href="/contas/nova" className="text-xs" style={{ color: 'var(--accent)' }}>
+                Adicionar primeira →
+              </Link>
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left border-b border-slate-100">
-                  <th className="pb-3 font-medium text-slate-400 text-xs uppercase">Descrição</th>
-                  <th className="pb-3 font-medium text-slate-400 text-xs uppercase">Categoria</th>
-                  <th className="pb-3 font-medium text-slate-400 text-xs uppercase">Tipo</th>
-                  <th className="pb-3 font-medium text-slate-400 text-xs uppercase">Vencimento</th>
-                  <th className="pb-3 font-medium text-slate-400 text-xs uppercase text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-50 last:border-b-0">
-                    <td className="py-3 text-slate-800 font-medium">{t.description}</td>
-                    <td className="py-3 text-slate-500">{t.category}</td>
-                    <td className="py-3 text-slate-500">{TYPE_LABELS[t.type]}</td>
-                    <td className="py-3 text-slate-500">{formatDate(t.due_date)}</td>
-                    <td className={`py-3 text-right font-semibold ${t.type === 'receivable' ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {t.type === 'receivable' ? '+' : '-'}{formatCurrency(Number(t.amount))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="flex flex-col gap-3">
+              {rows.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between py-2.5 px-3 rounded-xl"
+                  style={{ background: 'var(--bg-base)' }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{
+                        background: t.type === 'receivable' ? 'var(--green-dim)' : 'var(--red-dim)',
+                        color: t.type === 'receivable' ? 'var(--green)' : 'var(--red)',
+                      }}
+                    >
+                      {t.type === 'receivable' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                        {t.description}
+                      </p>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {t.category} · {formatDate(t.due_date)}
+                      </p>
+                    </div>
+                  </div>
+                  <p
+                    className="text-sm font-bold shrink-0 ml-3"
+                    style={{ color: t.type === 'receivable' ? 'var(--green)' : 'var(--red)' }}
+                  >
+                    {t.type === 'receivable' ? '+' : '-'}{formatCurrency(Number(t.amount))}
+                  </p>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
-    </div>
-  )
-}
-
-function SummaryCard({
-  label, value, sub, icon, iconBg, iconColor, valueColor,
-}: {
-  label: string
-  value: number
-  sub: string
-  icon: React.ReactNode
-  iconBg: string
-  iconColor: string
-  valueColor: string
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-xs font-semibold text-slate-400 tracking-wide">{label}</span>
-        <span className={`${iconBg} ${iconColor} p-2 rounded-lg`}>{icon}</span>
-      </div>
-      <p className={`text-2xl font-bold ${valueColor}`}>{formatCurrency(value)}</p>
-      <p className="text-xs text-slate-400 mt-1">{sub}</p>
     </div>
   )
 }

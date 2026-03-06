@@ -22,7 +22,6 @@ export function DuplicateTransactionButton({ id }: DuplicateTransactionButtonPro
                 alert('Erro ao duplicar transação: ' + result.error)
                 setIsDuplicating(false)
             } else {
-                // Redirect to the edit page of the newly duplicated transaction
                 router.push(`/contas/${result.newId}/editar`)
             }
         } catch (error) {
@@ -37,7 +36,8 @@ export function DuplicateTransactionButton({ id }: DuplicateTransactionButtonPro
             type="button"
             onClick={handleDuplicate}
             disabled={isDuplicating}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all disabled:opacity-50"
+            style={{ color: 'var(--text-muted)' }}
             title="Duplicar Transação (Mês Seguinte)"
         >
             {isDuplicating ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />}

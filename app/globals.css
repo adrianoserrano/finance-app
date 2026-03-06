@@ -1,22 +1,89 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-base: #0c0c14;
+  --bg-card: #12121f;
+  --bg-card-hover: #16162a;
+  --border: #1e1e30;
+  --border-bright: #2a2a42;
+  --text-primary: #f0f0f8;
+  --text-secondary: #8888aa;
+  --text-muted: #55556a;
+  --accent: #c8f06e;
+  --accent-dim: rgba(200, 240, 110, 0.12);
+  --accent-hover: #d4f580;
+  --red: #ff5566;
+  --red-dim: rgba(255, 85, 102, 0.12);
+  --green: #44e090;
+  --green-dim: rgba(68, 224, 144, 0.12);
+  --blue: #5588ff;
+  --blue-dim: rgba(85, 136, 255, 0.12);
+  --amber: #ffb84d;
+  --amber-dim: rgba(255, 184, 77, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .input {
   width: 100%;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.875rem;
   font-size: 0.875rem;
-  color: #0f172a;
-  background: #ffffff;
+  color: var(--text-primary);
+  background: var(--bg-base);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
 }
 
 .input:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200, 240, 110, 0.1);
+}
+
+.input option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Card glass effect */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+/* Subtle glow on accent elements */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(200, 240, 110, 0.15);
 }

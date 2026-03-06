@@ -2,15 +2,8 @@
 
 import { useState } from 'react'
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-    Cell
+    BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 
 export type ChartDataPoint = {
@@ -20,7 +13,6 @@ export type ChartDataPoint = {
     isFuture?: boolean
 }
 
-// chartData has 19 points: index 0 = -12 months, index 12 = current month, index 18 = +6 months
 const CURRENT_MONTH_INDEX = 12
 
 type ViewMode = 'past3_future3' | 'past6' | 'past12' | 'future6'
@@ -34,35 +26,36 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
 
     const getSlice = (): ChartDataPoint[] => {
         switch (viewMode) {
-            case 'past3_future3':
-                // 3 past + current + 3 future = 7 points
-                return data.slice(CURRENT_MONTH_INDEX - 3, CURRENT_MONTH_INDEX + 4)
-            case 'past6':
-                // 6 past + current = 7 points
-                return data.slice(CURRENT_MONTH_INDEX - 6, CURRENT_MONTH_INDEX + 1)
-            case 'past12':
-                // 12 past + current = 13 points
-                return data.slice(0, CURRENT_MONTH_INDEX + 1)
-            case 'future6':
-                // current + 6 future = 7 points
-                return data.slice(CURRENT_MONTH_INDEX, CURRENT_MONTH_INDEX + 7)
+            case 'past3_future3': return data.slice(CURRENT_MONTH_INDEX - 3, CURRENT_MONTH_INDEX + 4)
+            case 'past6': return data.slice(CURRENT_MONTH_INDEX - 6, CURRENT_MONTH_INDEX + 1)
+            case 'past12': return data.slice(0, CURRENT_MONTH_INDEX + 1)
+            case 'future6': return data.slice(CURRENT_MONTH_INDEX, CURRENT_MONTH_INDEX + 7)
         }
     }
 
     const chartData = getSlice()
 
+    const selectStyle = {
+        background: 'var(--bg-base)',
+        border: '1px solid var(--border)',
+        color: 'var(--text-secondary)',
+        borderRadius: '0.5rem',
+        padding: '0.5rem 0.75rem',
+        fontSize: '0.8125rem',
+        outline: 'none',
+    }
+
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col min-h-[400px]">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div
+            className="rounded-2xl p-6 flex flex-col min-h-[360px]"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+        >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
                 <div>
-                    <h2 className="font-semibold text-slate-800">Comparativo Mensal</h2>
-                    <p className="text-sm text-slate-400">Receitas vs Despesas</p>
+                    <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Comparativo Mensal</h2>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Receitas vs Despesas</p>
                 </div>
-                <select
-                    value={viewMode}
-                    onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                    className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-violet-500 focus:border-violet-500 block p-2.5"
-                >
+                <select value={viewMode} onChange={(e) => setViewMode(e.target.value as ViewMode)} style={selectStyle}>
                     <option value="past3_future3">3 passados + 3 futuros</option>
                     <option value="past6">Últimos 6 meses</option>
                     <option value="past12">Últimos 12 meses</option>
@@ -70,85 +63,58 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
                 </select>
             </div>
 
-            <div className="flex items-center gap-4 mb-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500" />
-                    Receitas confirmadas
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 rounded-sm bg-emerald-200" />
-                    Receitas previstas
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 rounded-sm bg-red-500" />
-                    Despesas confirmadas
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 rounded-sm bg-red-200" />
-                    Despesas previstas
-                </span>
+            <div className="flex items-center gap-4 mb-4 flex-wrap">
+                {[
+                    { color: '#44e090', label: 'Receitas' },
+                    { color: 'rgba(68,224,144,0.2)', label: 'Receitas previstas' },
+                    { color: 'var(--red)', label: 'Despesas' },
+                    { color: 'rgba(255,85,102,0.2)', label: 'Despesas previstas' },
+                ].map(({ color, label }) => (
+                    <span key={label} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
+                        {label}
+                    </span>
+                ))}
             </div>
 
-            <div className="flex-1 w-full h-[300px]">
+            <div className="flex-1 w-full h-[250px]">
                 {chartData.length === 0 ? (
-                    <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+                    <div className="flex items-center justify-center h-full text-sm" style={{ color: 'var(--text-muted)' }}>
                         Nenhum dado encontrado para o período.
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={chartData}
-                            margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis
-                                dataKey="month"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 12 }}
-                                dy={10}
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 12 }}
-                                tickFormatter={(value) => `R$ ${value}`}
-                            />
+                        <BarChart data={chartData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                            <XAxis dataKey="month" axisLine={false} tickLine={false}
+                                tick={{ fill: '#55556a', fontSize: 11 }} dy={8} />
+                            <YAxis axisLine={false} tickLine={false}
+                                tick={{ fill: '#55556a', fontSize: 11 }}
+                                tickFormatter={(v) => `R$${v}`} />
                             <Tooltip
-                                cursor={{ fill: '#f1f5f9' }}
-                                contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                contentStyle={{
+                                    background: 'var(--bg-card)',
+                                    border: '1px solid var(--border-bright)',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '12px',
+                                }}
                                 formatter={(value: number | string | undefined, name: string | undefined, props: { payload?: ChartDataPoint }) => {
                                     const isFuture = props?.payload?.isFuture
                                     const label = isFuture ? `${name ?? ''} (previsto)` : (name ?? '')
                                     return [`R$ ${Number(value || 0).toFixed(2)}`, label]
                                 }}
                             />
-                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                            <Bar
-                                dataKey="receitas"
-                                name="Receitas"
-                                radius={[4, 4, 0, 0]}
-                                maxBarSize={40}
-                                hide={false}
-                            >
-                                {chartData.map((entry, index) => (
-                                    <Cell
-                                        key={`receita-${index}`}
-                                        fill={entry.isFuture ? '#6ee7b7' : '#10b981'}
-                                    />
+                            <Bar dataKey="receitas" name="Receitas" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                                {chartData.map((entry, i) => (
+                                    <Cell key={`r-${i}`} fill={entry.isFuture ? 'rgba(68,224,144,0.2)' : '#44e090'} />
                                 ))}
                             </Bar>
-                            <Bar
-                                dataKey="despesas"
-                                name="Despesas"
-                                radius={[4, 4, 0, 0]}
-                                maxBarSize={40}
-                            >
-                                {chartData.map((entry, index) => (
-                                    <Cell
-                                        key={`despesa-${index}`}
-                                        fill={entry.isFuture ? '#fca5a5' : '#ef4444'}
-                                    />
+                            <Bar dataKey="despesas" name="Despesas" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                                {chartData.map((entry, i) => (
+                                    <Cell key={`d-${i}`} fill={entry.isFuture ? 'rgba(255,85,102,0.2)' : '#ff5566'} />
                                 ))}
                             </Bar>
                         </BarChart>

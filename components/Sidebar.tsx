@@ -13,17 +13,35 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="w-56 min-h-screen bg-slate-900 flex flex-col px-4 py-6 shrink-0">
+    <aside
+      className="w-56 min-h-screen flex flex-col px-3 py-6 shrink-0"
+      style={{
+        background: 'var(--bg-card)',
+        borderRight: '1px solid var(--border)',
+      }}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-2 mb-8">
-        <div className="w-9 h-9 bg-violet-600 rounded-lg flex items-center justify-center shrink-0">
-          <BarChart2 size={18} className="text-white" />
+      <div className="flex items-center gap-3 px-3 mb-10">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: 'var(--accent)', boxShadow: '0 0 16px rgba(200,240,110,0.3)' }}
+        >
+          <BarChart2 size={18} className="text-black" />
         </div>
         <div>
-          <p className="text-white font-semibold text-sm leading-tight">FinanceApp</p>
-          <p className="text-slate-400 text-xs leading-tight">Controle Financeiro</p>
+          <p className="font-bold text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>
+            FinanceApp
+          </p>
+          <p className="text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>
+            Controle Financeiro
+          </p>
         </div>
       </div>
+
+      {/* Nav label */}
+      <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+        Menu
+      </p>
 
       {/* Nav */}
       <nav className="flex flex-col gap-1">
@@ -33,11 +51,19 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
+              style={
                 active
-                  ? 'bg-violet-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
-              }`}
+                  ? {
+                    background: 'var(--accent-dim)',
+                    color: 'var(--accent)',
+                    border: '1px solid rgba(200,240,110,0.2)',
+                  }
+                  : {
+                    color: 'var(--text-secondary)',
+                    border: '1px solid transparent',
+                  }
+              }
             >
               <Icon size={16} />
               {label}
@@ -45,6 +71,27 @@ export default function Sidebar() {
           )
         })}
       </nav>
+
+      {/* Footer */}
+      <div className="mt-auto px-3">
+        <div
+          className="rounded-xl p-3"
+          style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+              style={{ background: 'var(--accent-dim)', color: 'var(--accent)' }}
+            >
+              A
+            </div>
+            <div>
+              <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>Adriano</p>
+              <p className="text-xs leading-tight" style={{ color: 'var(--text-muted)' }}>Minha conta</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </aside>
   )
 }

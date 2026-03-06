@@ -16,7 +16,6 @@ export function DeleteTransactionButton({ id }: DeleteTransactionButtonProps) {
         try {
             setIsDeleting(true)
             const result = await deleteTransaction(id)
-
             if (!result.success) {
                 alert('Erro ao excluir transação: ' + result.error)
             } else {
@@ -35,17 +34,24 @@ export function DeleteTransactionButton({ id }: DeleteTransactionButtonProps) {
             <button
                 type="button"
                 onClick={() => setIsOpen(true)}
-                className="inline-flex items-center justify-center w-7 h-7 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all"
+                style={{ color: 'var(--text-muted)' }}
                 title="Excluir"
             >
                 <Trash2 size={14} />
             </button>
 
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-left animate-in zoom-in-95 duration-200">
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">Excluir Transação</h3>
-                        <p className="text-sm text-slate-500 mb-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    style={{ background: 'rgba(0,0,0,0.7)' }}>
+                    <div
+                        className="rounded-2xl shadow-2xl max-w-sm w-full p-6 text-left animate-in zoom-in-95 duration-200"
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-bright)' }}
+                    >
+                        <h3 className="text-base font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                            Excluir Transação
+                        </h3>
+                        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
                             Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
                         </p>
 
@@ -54,7 +60,8 @@ export function DeleteTransactionButton({ id }: DeleteTransactionButtonProps) {
                                 type="button"
                                 onClick={() => setIsOpen(false)}
                                 disabled={isDeleting}
-                                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                                className="px-4 py-2 text-sm font-medium rounded-xl transition-all disabled:opacity-50"
+                                style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
                             >
                                 Cancelar
                             </button>
@@ -62,9 +69,10 @@ export function DeleteTransactionButton({ id }: DeleteTransactionButtonProps) {
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all disabled:opacity-50"
+                                style={{ background: 'var(--red-dim)', color: 'var(--red)', border: '1px solid rgba(255,85,102,0.3)' }}
                             >
-                                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                 Excluir
                             </button>
                         </div>
