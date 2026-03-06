@@ -5,7 +5,7 @@ import { TYPE_LABELS } from '@/types'
 import { BarChart3, TrendingDown, TrendingUp, Wallet, AlertCircle, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { MonthlyComparisonChart, ChartDataPoint } from '@/components/Dashboard/MonthlyComparisonChart'
-import { subMonths, startOfMonth, format, isSameMonth } from 'date-fns'
+import { addMonths, subMonths, startOfMonth, format, isSameMonth, isAfter } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 async function getDashboardData() {
@@ -42,19 +42,19 @@ async function getDashboardData() {
 
   const totalBalance = allReceivable - allPayable
 
-  // Aggregation logic for Monthly Comparison Chart (last 12 months)
+  // Generate chart data: 12 months back + current + 6 months ahead = 19 data points
   const chartData: ChartDataPoint[] = []
   const today = new Date()
+  const currentMonthStart = startOfMonth(today)
 
-  for (let i = 11; i >= 0; i--) {
-    const targetMonth = startOfMonth(subMonths(today, i))
+  for (let i = -12; i <= 6; i++) {
+    const targetMonth = i >= 0
+      ? startOfMonth(addMonths(today, i))
+      : startOfMonth(subMonths(today, Math.abs(i)))
     const monthName = format(targetMonth, 'MMM/yy', { locale: ptBR })
+    const future = isAfter(targetMonth, currentMonthStart)
 
-    // Sum only confirmed (pago/recebido) or all depending on requirement.
-    // Assuming user wants to compare history, we should sum everything or only confirmed?
-    // Let's sum absolute totals of the month regardless of status to reflect total expenses/incomes of that month's due_date.
     const monthTransactions = rows.filter((t) => {
-      // Usamos o due_date para locar a transação no mês correto
       const [year, month, day] = t.due_date.split('-')
       const tDate = new Date(Number(year), Number(month) - 1, Number(day))
       return isSameMonth(tDate, targetMonth)
@@ -71,7 +71,8 @@ async function getDashboardData() {
     chartData.push({
       month: monthName.charAt(0).toUpperCase() + monthName.slice(1),
       receitas,
-      despesas
+      despesas,
+      isFuture: future
     })
   }
 
