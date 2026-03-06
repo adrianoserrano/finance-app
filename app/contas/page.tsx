@@ -6,6 +6,7 @@ import StatusBadge from '@/components/StatusBadge'
 import { DeleteTransactionButton } from '@/components/Contas/DeleteTransactionButton'
 import { DuplicateTransactionButton } from '@/components/Contas/DuplicateTransactionButton'
 import { TransactionFilters } from '@/components/Contas/TransactionFilters'
+import { SortableHeader } from '@/components/Contas/SortableHeader'
 import Link from 'next/link'
 import { Plus, Pencil } from 'lucide-react'
 
@@ -31,23 +32,25 @@ async function getTransactions(searchParams: { [key: string]: string | string[] 
     if (mode === 'specific_date') {
       query = query.eq('due_date', value)
     } else if (mode === 'specific_month') {
-      // value comes as "YYYY-MM"
-      // first day: "YYYY-MM-01"
-      // last day is tricky to calculate natively without date-fns, but Supabase handles `.like()` on dates if casted, 
-      // or we can build the bounds manually.
       const [year, month] = value.split('-')
       const firstDay = `${year}-${month}-01`
-      const lastDay = new Date(Number(year), Number(month), 0).toISOString().split('T')[0] // local last day of month
+      const lastDay = new Date(Number(year), Number(month), 0).toISOString().split('T')[0]
       query = query.gte('due_date', firstDay).lte('due_date', lastDay)
     } else if (mode === 'specific_year') {
-      // value comes as "YYYY"
       const firstDay = `${value}-01-01`
       const lastDay = `${value}-12-31`
       query = query.gte('due_date', firstDay).lte('due_date', lastDay)
     }
   }
 
-  const { data, error } = await query.order('due_date', { ascending: true })
+  // Sorting: allowed columns are the ones exposed in the UI
+  const allowedSortFields = ['category', 'type', 'due_date', 'amount', 'status']
+  const sortBy = typeof searchParams.sortBy === 'string' && allowedSortFields.includes(searchParams.sortBy)
+    ? searchParams.sortBy
+    : 'due_date'
+  const ascending = searchParams.sortOrder !== 'desc'
+
+  const { data, error } = await query.order(sortBy, { ascending })
 
   if (error || !data) return []
   return data as Transaction[]
@@ -90,11 +93,11 @@ export default async function ContasPage(props: { searchParams: Promise<{ [key: 
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-left">
                 <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Descrição</th>
-                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Categoria</th>
-                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Tipo</th>
-                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Vencimento</th>
-                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide text-right">Valor</th>
-                <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide text-center">Status</th>
+                <SortableHeader label="Categoria" field="category" />
+                <SortableHeader label="Tipo" field="type" />
+                <SortableHeader label="Vencimento" field="due_date" />
+                <SortableHeader label="Valor" field="amount" className="text-right" />
+                <SortableHeader label="Status" field="status" className="text-center" />
                 <th className="px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide text-center">Ações</th>
               </tr>
             </thead>
