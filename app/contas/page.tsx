@@ -24,6 +24,29 @@ async function getTransactions(searchParams: { [key: string]: string | string[] 
     query = query.eq('status', searchParams.status)
   }
 
+  if (searchParams.dateMode && searchParams.dateValue && typeof searchParams.dateValue === 'string') {
+    const value = searchParams.dateValue
+    const mode = searchParams.dateMode
+
+    if (mode === 'specific_date') {
+      query = query.eq('due_date', value)
+    } else if (mode === 'specific_month') {
+      // value comes as "YYYY-MM"
+      // first day: "YYYY-MM-01"
+      // last day is tricky to calculate natively without date-fns, but Supabase handles `.like()` on dates if casted, 
+      // or we can build the bounds manually.
+      const [year, month] = value.split('-')
+      const firstDay = `${year}-${month}-01`
+      const lastDay = new Date(Number(year), Number(month), 0).toISOString().split('T')[0] // local last day of month
+      query = query.gte('due_date', firstDay).lte('due_date', lastDay)
+    } else if (mode === 'specific_year') {
+      // value comes as "YYYY"
+      const firstDay = `${value}-01-01`
+      const lastDay = `${value}-12-31`
+      query = query.gte('due_date', firstDay).lte('due_date', lastDay)
+    }
+  }
+
   const { data, error } = await query.order('due_date', { ascending: true })
 
   if (error || !data) return []
